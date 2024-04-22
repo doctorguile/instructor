@@ -17,11 +17,16 @@ from .process_response import handle_parallel_model
 from .client import (
     Instructor,
     AsyncInstructor,
-    from_openai,
+    # from_openai,
     from_litellm,
     Provider,
 )
 
+from .azure import (
+    from_azure,
+)
+
+from_openai = from_azure
 
 __all__ = [
     "Instructor",
