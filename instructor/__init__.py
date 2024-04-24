@@ -23,13 +23,14 @@ from .client import (
 )
 
 from .azure import (
-    from_azure,
+    from_azure, default_azure_client
 )
 
 from_openai = from_azure
 
 __all__ = [
     "Instructor",
+    "default_azure_client",
     "from_openai",
     "from_litellm",
     "AsyncInstructor",

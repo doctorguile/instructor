@@ -133,26 +133,45 @@ def wrapper(func, **wrapkwargs):
   return inner
 
 
+def default_azure_client():
+  from openai import AzureOpenAI
+  clientkwargs = {
+    "api_key": os.environ.get("AZURE_OPENAI_API_KEY"),
+    # "api_version": "2023-12-01-preview",
+    "api_version": "2024-02-15-preview",
+    "azure_endpoint": os.environ.get("AZURE_OPENAI_ENDPOINT"),
+    "http_client": httpx.Client(
+      transport= LogTransport(httpx.HTTPTransport()),
+      event_hooks={
+      "request": [log_request],
+      # "response": [log_response]
+    })
+  }
+  return AzureOpenAI(**clientkwargs)
+
 def from_azure(client=None, *args, **kwargs):
   from openai import AzureOpenAI, AsyncAzureOpenAI
   clientkwargs = {
     "api_key": os.environ.get("AZURE_OPENAI_API_KEY"),
-    "api_version": "2023-12-01-preview",
+    # "api_version": "2023-12-01-preview",
+    "api_version": "2024-02-15-preview",
     "azure_endpoint": os.environ.get("AZURE_OPENAI_ENDPOINT"),
   }
   if isinstance(client, AsyncAzureOpenAI) or isinstance(client, AsyncOpenAI):
-    clientkwargs["http_client"] = httpx.AsyncClient(event_hooks={
-      "transport": LogTransport(httpx.HTTPTransport()),
+    clientkwargs["http_client"] = httpx.AsyncClient(
+      transport= LogTransport(httpx.HTTPTransport()),
+      event_hooks={
       "request": [log_request],
       # "response": [log_response]
     })
     azclient = AsyncAzureOpenAI(**clientkwargs)
   else:
-    clientkwargs["http_client"] = httpx.Client(event_hooks={
-      "transport": LogTransport(httpx.HTTPTransport()),
+    clientkwargs["http_client"] = httpx.Client(
+      transport= LogTransport(httpx.HTTPTransport()),
+      event_hooks={
       "request": [log_request],
       # "response": [log_response]
     })
     azclient = AzureOpenAI(**clientkwargs)
   azclient.chat.completions.create = wrapper(azclient.chat.completions.create, model="gpt-4")
-  return from_openai(azclient)
+  return from_openai(azclient, **kwargs)
